@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask, render_template, request
 
 from czcParser import Parser
@@ -8,10 +6,6 @@ from errors import *
 parser = Parser()
 
 app = Flask(__name__)
-
-
-os.system("cls")
-
 
 
 @app.route('/')

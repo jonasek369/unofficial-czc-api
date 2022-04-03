@@ -1,11 +1,29 @@
+import json
+import os
+import time
+
+import redis
 from flask import Flask, render_template, request
 
+from Logger import *
 from czcParser import Parser
 from errors import *
 
 parser = Parser()
 
 app = Flask(__name__)
+
+DEFAULT_REDIS_EXPIRE = 3600
+rds = redis.Redis()
+
+os.system("cls")
+
+try:
+    rds.keys()
+    LOG(SUCCESS, "Connected to redis database")
+except redis.exceptions.ConnectionError or any:
+    LOG(ERROR, "Connection to redis database failed")
+    exit(1)
 
 
 @app.route('/')
@@ -20,7 +38,13 @@ def product_info():
         identifier = data.get('identifier')
         if identifier is None:
             return throw_missing_parameters(["identifier"])
-        return parser.get_product_info(f"https://www.czc.cz/a/{identifier}/produkt")
+        redis_fetch = rds.get(f"product-info:{identifier}")
+        if redis_fetch is None:
+            data = parser.get_product_info(f"https://www.czc.cz/a/{identifier}/produkt")
+            rds.setex(f"product-info:{identifier}", DEFAULT_REDIS_EXPIRE, json.dumps(data))
+            return data
+        else:
+            return json.loads(redis_fetch)
     except KeyError:
         return throw_json_error()
 
@@ -32,6 +56,18 @@ def list_info():
         identifier = data.get('identifier')
         if identifier is None:
             return throw_missing_parameters(["identifier"])
-        return parser.get_seznam_info(f"https://www.czc.cz/{identifier}/seznam")
+        redis_fetch = rds.get(f"list-info:{identifier}")
+        if redis_fetch is None:
+            data = parser.get_seznam_info(f"https://www.czc.cz/{identifier}/seznam")
+            rds.setex(f"list-info:{identifier}", DEFAULT_REDIS_EXPIRE, json.dumps(data))
+            return data
+        else:
+            return json.loads(redis_fetch)
     except KeyError:
         return throw_json_error()
+
+
+if __name__ == '__main__':
+    LOG(INFO, "Starting test server")
+    time.sleep(0.5)
+    app.run()

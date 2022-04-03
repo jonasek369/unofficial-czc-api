@@ -1,5 +1,6 @@
 import json
 import re
+import time
 
 import requests
 
@@ -43,8 +44,7 @@ class Parser:
                 "discount_value": nj["pageview"]["data"].get("discount_value"),
                 "discount_percentage": nj["pageview"]["data"].get("discount_percentage")
             }
-        except Exception as e:
-            print(e)
+        except:
             return {
                 "status": "ERROR",
                 "message": "there was an error during data gathering phase please ensure that the identifier is right"
@@ -74,9 +74,16 @@ class Parser:
                 "total_price": total_price,
                 "products": [i for i in products if i.pop("id") is not None]
             }
-        except Exception as e:
-            print(e)
+        except:
             return {
                 "status": "ERROR",
                 "message": "there was an error during data gathering phase please ensure that the identifier is right"
             }
+
+
+if __name__ == '__main__':
+    p = Parser()
+    start = time.perf_counter()
+    # print(p.get_seznam_info("https://www.czc.cz/9todcb1sbshncb4hg8qnfafbtg/seznam"))
+    # print(p.get_product_info("https://www.czc.cz/sony-ps5-bezdratovy-ovladac-dualsense-cosmic-red/318356/produkt"))
+    print(time.perf_counter() - start)

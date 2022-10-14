@@ -21,7 +21,7 @@ os.system("cls")
 try:
     rds.keys()
     LOG(SUCCESS, "Connected to redis database")
-except redis.exceptions.ConnectionError or any:
+except redis.exceptions.ConnectionError:
     LOG(ERROR, "Connection to redis database failed")
     exit(1)
 
@@ -40,7 +40,7 @@ def product_info():
             return throw_missing_parameters(["identifier"])
         redis_fetch = rds.get(f"product-info:{identifier}")
         if redis_fetch is None:
-            data = parser.get_product_info(f"https://www.czc.cz/a/{identifier}/produkt")
+            data = parser.parse_product(identifier)
             rds.setex(f"product-info:{identifier}", DEFAULT_REDIS_EXPIRE, json.dumps(data))
             return data
         else:
@@ -58,7 +58,7 @@ def list_info():
             return throw_missing_parameters(["identifier"])
         redis_fetch = rds.get(f"list-info:{identifier}")
         if redis_fetch is None:
-            data = parser.get_seznam_info(f"https://www.czc.cz/{identifier}/seznam")
+            data = parser.parse_seznam(identifier)
             rds.setex(f"list-info:{identifier}", DEFAULT_REDIS_EXPIRE, json.dumps(data))
             return data
         else:

@@ -31,7 +31,9 @@ class Parser:
             return data[findstart + addstart:findend + addend]
 
     def parse_product(self, product_id):
-        if validators.url(product_id) and product_id.startswith("https://www.czc.cz/"):
+        if isinstance(product_id, (float, int)):
+            url = self.url_from_id(product_id)
+        elif validators.url(product_id) and product_id.startswith("https://www.czc.cz/"):
             url = product_id
         else:
             url = self.url_from_id(product_id)
@@ -70,11 +72,3 @@ class Parser:
             "total_price": sum([i["price"] for i in product_jsons]),
             "prducts": product_jsons
         }
-
-
-
-parser = Parser()
-start = time.perf_counter()
-print(parser.parse_seznam(("bol5a64d9shh2biahcn4t8s0oa")))
-end = time.perf_counter()
-print((end - start) * 1000, "ms")
